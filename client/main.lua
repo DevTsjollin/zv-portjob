@@ -14,25 +14,30 @@ RegisterCommand("attach", function()
     local vehicle = GetVehiclePedIsIn(PlayerPedId())
     local coords = GetEntityCoords(PlayerPedId())
     local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1)
-    test = container
-    if IsHandlerFrameAboveContainer(vehicle, container) then
-        if RequestScriptAudioBank("Container_Lifter", 0) then
-            PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+    if not IsAnyEntityAttachedToHandlerFrame(vehicle) then
+        if IsVehicleDriveable(vehicle, 0) then
+            if DoesEntityExist(container) then
+                if IsHandlerFrameAboveContainer(vehicle, container) then
+                    if RequestScriptAudioBank("Container_Lifter", 0) then
+                        PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+                    end
+                    AttachContainerToHandlerFrame(vehicle, container)
+                end
+            end
         end
-        AttachContainerToHandlerFrame(vehicle, container)
-        StopSound(GetSoundId())
     end
 end, false)
 RegisterCommand("detach", function()
     local vehicle = GetVehiclePedIsIn(PlayerPedId())
     local coords = GetEntityCoords(PlayerPedId())
-    if IsAnyEntityAttachedToHandlerFrame(vehicle) then
-        if RequestScriptAudioBank("Container_Lifter", 0) then
-            PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+    if IsVehicleDriveable(vehicle, 0) then
+        if IsAnyEntityAttachedToHandlerFrame(vehicle) then
+            if RequestScriptAudioBank("Container_Lifter", 0) then
+                PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+            end
+            DetachContainerFromHandlerFrame(vehicle)
+            containerland = false
         end
-        DetachContainerFromHandlerFrame(vehicle)
-        containerland = false
-        StopSound(GetSoundId())
     end
 end, false)
 RegisterCommand("spawn", function()
@@ -46,6 +51,7 @@ RegisterCommand("spawn", function()
     local object = CreateObject(GetHashKey('prop_contr_03b_ld'), -54.58629608154297, -2399.421875, 4.99999856948852, true, true, false)
     SetEntityAsMissionEntity(object, true, true)
 end, false)
+
 CreateThread(function()
     while true do
         local vehicle = GetVehiclePedIsIn(PlayerPedId())
@@ -57,7 +63,6 @@ CreateThread(function()
                     if RequestScriptAudioBank("Container_Lifter", 0) then
                         PlaySoundFromEntity(GetSoundId(), "Container_Land", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
                     end
-                    StopSound(GetSoundId())
                     containerland = true
                 end
             end
@@ -65,8 +70,3 @@ CreateThread(function()
         Wait(0)
     end
 end)
-function ShowHelpNotification(text)
-    SetTextComponentFormat('STRING')
-    AddTextComponentString(text)
-    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
-end
