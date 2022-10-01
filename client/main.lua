@@ -10,6 +10,7 @@ local Keys = {
     ["NENTER"] = 201, ["N4"] = 108, ["N5"] = 60, ["N6"] = 107, ["N+"] = 96, ["N-"] = 97, ["N7"] = 117, ["N8"] = 61, ["N9"] = 118
 }
 local containerland = true
+local pickedup = false
 RegisterCommand("attach", function()
     local vehicle = GetVehiclePedIsIn(PlayerPedId())
     local coords = GetEntityCoords(PlayerPedId())
@@ -48,25 +49,63 @@ RegisterCommand("spawn", function()
             Wait(1)
         end
     end
-    local object = CreateObject(GetHashKey('prop_contr_03b_ld'), -54.58629608154297, -2399.421875, 4.99999856948852, true, true, false)
-    SetEntityAsMissionEntity(object, true, true)
+    local object = CreateObject(GetHashKey('prop_contr_03b_ld'), -54.58629608154297, -2399.421875, 4.99999856948852, 1, 1, 0)
+    SetEntityAsMissionEntity(object, 1, 1)
 end, false)
 
 CreateThread(function()
     while true do
         local vehicle = GetVehiclePedIsIn(PlayerPedId())
         local coords = GetEntityCoords(PlayerPedId())
+        local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1)
         if not containerland then
             if not IsAnyEntityAttachedToHandlerFrame(vehicle) then
-                local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1)
                 if HasEntityCollidedWithAnything(container) then
                     if RequestScriptAudioBank("Container_Lifter", 0) then
                         PlaySoundFromEntity(GetSoundId(), "Container_Land", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
                     end
                     containerland = true
+                    pickedup= false
                 end
             end
         end
+        if not IsAnyEntityAttachedToHandlerFrame(vehicle) and not pickedup then
+            if IsVehicleDriveable(vehicle, 0) then
+                if DoesEntityExist(container) then
+                    if IsHandlerFrameAboveContainer(vehicle, container) then
+                        ShowHelpNotification('Press ~INPUT_CONTEXT~ to pick up the container.')
+                        if IsControlJustPressed(0, Keys['E']) then
+                            if RequestScriptAudioBank("Container_Lifter", 0) then
+                                PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+                            end
+                            AttachContainerToHandlerFrame(vehicle, container)    
+                            pickedup = true    
+                        end
+                    end
+                end
+            end
+        end
+        if pickedup then
+            if IsVehicleDriveable(vehicle, 0) then
+                if DoesEntityExist(container) then
+                    ShowHelpNotification('Press ~INPUT_CONTEXT~ to release the container.')
+                    if IsControlJustPressed(0, Keys['E']) then
+                        if RequestScriptAudioBank("Container_Lifter", 0) then
+                            PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+                        end
+                        containerland = false
+                    end
+                end
+            end
+        end    
         Wait(0)
     end
 end)
+-- ShowHelpNotification('Press ~INPUT_CONTEXT~ to pick up the container.')
+-- ShowHelpNotification('Press ~INPUT_CONTEXT~ to release the container.')
+
+function ShowHelpNotification(text)
+    SetTextComponentFormat('STRING')
+    AddTextComponentString(text)
+    DisplayHelpTextFromStringLabel(0, 0, 1, -1)
+end
