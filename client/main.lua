@@ -11,36 +11,7 @@ local Keys = {
 }
 local containerland = true
 local pickedup = false
-RegisterCommand("attach", function()
-    local vehicle = GetVehiclePedIsIn(PlayerPedId())
-    local coords = GetEntityCoords(PlayerPedId())
-    local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1)
-    if not IsAnyEntityAttachedToHandlerFrame(vehicle) then
-        if IsVehicleDriveable(vehicle, 0) then
-            if DoesEntityExist(container) then
-                if IsHandlerFrameAboveContainer(vehicle, container) then
-                    if RequestScriptAudioBank("Container_Lifter", 0) then
-                        PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
-                    end
-                    AttachContainerToHandlerFrame(vehicle, container)
-                end
-            end
-        end
-    end
-end, false)
-RegisterCommand("detach", function()
-    local vehicle = GetVehiclePedIsIn(PlayerPedId())
-    local coords = GetEntityCoords(PlayerPedId())
-    if IsVehicleDriveable(vehicle, 0) then
-        if IsAnyEntityAttachedToHandlerFrame(vehicle) then
-            if RequestScriptAudioBank("Container_Lifter", 0) then
-                PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
-            end
-            DetachContainerFromHandlerFrame(vehicle)
-            containerland = false
-        end
-    end
-end, false)
+
 RegisterCommand("spawn", function()
     if not HasModelLoaded(GetHashKey('prop_contr_03b_ld')) then
         RequestModel(GetHashKey('prop_contr_03b_ld'))
@@ -49,7 +20,7 @@ RegisterCommand("spawn", function()
             Wait(1)
         end
     end
-    local object = CreateObject(GetHashKey('prop_contr_03b_ld'), -54.58629608154297, -2399.421875, 4.99999856948852, 1, 1, 0)
+    local object = CreateObject(GetHashKey('prop_contr_03b_ld'), -54.58629608154297, -2399.421875, 4.99999856948852, 1, 0, 0)
     SetEntityAsMissionEntity(object, 1, 1)
 end, false)
 
@@ -57,7 +28,7 @@ CreateThread(function()
     while true do
         local vehicle = GetVehiclePedIsIn(PlayerPedId())
         local coords = GetEntityCoords(PlayerPedId())
-        local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1)
+        local container = GetClosestObjectOfType(coords.xyz, 15.0, GetHashKey('prop_contr_03b_ld'), 1, 0, 1) -- zet op 1 0 1 voor alleen eigen containers
         if not containerland then
             if not IsAnyEntityAttachedToHandlerFrame(vehicle) then
                 if HasEntityCollidedWithAnything(container) then
@@ -65,7 +36,7 @@ CreateThread(function()
                         PlaySoundFromEntity(GetSoundId(), "Container_Land", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
                     end
                     containerland = true
-                    pickedup= false
+                    pickedup = false
                 end
             end
         end
@@ -98,11 +69,9 @@ CreateThread(function()
                 end
             end
         end    
-        Wait(0)
+        Wait(7)
     end
 end)
--- ShowHelpNotification('Press ~INPUT_CONTEXT~ to pick up the container.')
--- ShowHelpNotification('Press ~INPUT_CONTEXT~ to release the container.')
 
 function ShowHelpNotification(text)
     SetTextComponentFormat('STRING')
