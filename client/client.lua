@@ -276,35 +276,37 @@ CreateThread(function()
                 end
             end
         end
-        if not IsAnyEntityAttachedToHandlerFrame(vehicle) and not pickedup then
-            if IsVehicleDriveable(vehicle, 0) then
-                if DoesEntityExist(container) then
-                    if IsHandlerFrameAboveContainer(vehicle, container) then
-                        ShowHelpNotification('Press ~INPUT_CONTEXT~ to pick up the container.')
+        if IsPedInAnyVehicle(PlayerPedId()) and GetEntityModel(GetVehiclePedIsIn(PlayerPedId())) == joaat("handler") then
+            if not IsAnyEntityAttachedToHandlerFrame(vehicle) and not pickedup then
+                if IsVehicleDriveable(vehicle, 0) then
+                    if DoesEntityExist(container) then
+                        if IsHandlerFrameAboveContainer(vehicle, container) then
+                            ShowHelpNotification('Press ~INPUT_CONTEXT~ to pick up the container.')
+                            if IsControlJustPressed(0, 38) then
+                                if RequestScriptAudioBank("Container_Lifter", 0) then
+                                    PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+                                end
+                                AttachContainerToHandlerFrame(vehicle, container)    
+                                pickedup = true    
+                            end
+                        end
+                    end
+                end
+            end
+            if pickedup then
+                if IsVehicleDriveable(vehicle, 0) then
+                    if DoesEntityExist(container) then
+                        ShowHelpNotification('Press ~INPUT_CONTEXT~ to release the container.')
                         if IsControlJustPressed(0, 38) then
                             if RequestScriptAudioBank("Container_Lifter", 0) then
-                                PlaySoundFromEntity(GetSoundId(), "Container_Attach", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
+                                PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
                             end
-                            AttachContainerToHandlerFrame(vehicle, container)    
-                            pickedup = true    
+                            containerland = false
                         end
                     end
                 end
             end
         end
-        if pickedup then
-            if IsVehicleDriveable(vehicle, 0) then
-                if DoesEntityExist(container) then
-                    ShowHelpNotification('Press ~INPUT_CONTEXT~ to release the container.')
-                    if IsControlJustPressed(0, 38) then
-                        if RequestScriptAudioBank("Container_Lifter", 0) then
-                            PlaySoundFromEntity(GetSoundId(), "Container_Release", vehicle, "CONTAINER_LIFTER_SOUNDS", 0, 0)
-                        end
-                        containerland = false
-                    end
-                end
-            end
-        end    
         Wait(3)
     end
 end)
